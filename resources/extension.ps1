@@ -61,14 +61,14 @@ function Update-QlikExtension {
 
         [string]$name,
         [object]$owner,
-        [string[]]$customProperties,
-        [string[]]$tags
+        [object[]]$customProperties,
+        [object[]]$tags
     )
 
     PROCESS {
         $ext = Get-QlikExtension -raw -Id $id
-        if ($PSBoundParameters.ContainsKey("customProperties")) { $ext.customProperties = @(GetCustomProperties $customProperties) }
-        if ($PSBoundParameters.ContainsKey("tags")) { $ext.tags = @(GetTags $tags) }
+        if ($PSBoundParameters.ContainsKey("customProperties")) { $ext.customProperties = @(GetCustomProperties $customProperties $ext.customProperties) }
+        if ($PSBoundParameters.ContainsKey("tags")) { $ext.tags = @(GetTags $tags $ext.tags) }
         if ($PSBoundParameters.ContainsKey("owner")) { $ext.owner = GetUser $owner }
 
         $json = $ext | ConvertTo-Json -Compress -Depth 10

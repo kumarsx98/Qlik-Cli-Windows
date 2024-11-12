@@ -87,7 +87,7 @@ function Get-QlikReloadTask {
     [CmdletBinding()]
     param (
         [parameter(Position = 0)]
-        [string]$Id,
+        [string]$id,
         [string]$Filter,
         [switch]$Full,
         [switch]$raw
@@ -113,9 +113,8 @@ function Get-QlikTask {
     PROCESS {
         $path = "/qrs/task"
         If ( !$raw ) {
-            If ( $id ) { $path += "/$id" }
             $path += "/full"
-            $result = Invoke-QlikGet $path $filter
+            $result = Invoke-QlikGet -path $path -filter $filter
             If ( !$full ) {
                 $result = $result | ForEach-Object {
                     $props = @{
@@ -130,10 +129,9 @@ function Get-QlikTask {
             return $result
         }
         else {
-            If ( $id ) { $path += "/$id" }
             If ( $full ) { $path += "/full" }
             If ( $raw ) { $rawOutput = $true }
-            return Invoke-QlikGet $path $filter
+            return Invoke-QlikGet -path $path -filter $filter
         }
     }
 }
@@ -219,6 +217,18 @@ function Start-QlikTask {
     }
 }
 
+function Stop-QlikTask {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [guid]$id
+    )
+
+    PROCESS {
+        return Invoke-QlikPost "/qrs/task/$id/stop"
+    }
+}
+
 function Update-QlikReloadTask {
     [CmdletBinding()]
     param (
@@ -233,8 +243,8 @@ function Update-QlikReloadTask {
         [ValidateRange(0, 20)]
         [Int]$MaxRetries,
 
-        [string[]]$customProperties,
-        [string[]]$tags
+        [object[]]$customProperties,
+        [object[]]$tags
     )
 
     PROCESS {
@@ -242,8 +252,8 @@ function Update-QlikReloadTask {
         If ( $psBoundParameters.ContainsKey("Enabled") ) { $task.enabled = $Enabled }
         If ( $psBoundParameters.ContainsKey("TaskSessionTimeout") ) { $task.taskSessionTimeout = $TaskSessionTimeout }
         If ( $psBoundParameters.ContainsKey("MaxRetries") ) { $task.maxRetries = $MaxRetries }
-        if ($PSBoundParameters.ContainsKey("customProperties")) { $task.customProperties = @(GetCustomProperties $customProperties) }
-        if ($PSBoundParameters.ContainsKey("tags")) { $task.tags = @(GetTags $tags) }
+        if ($PSBoundParameters.ContainsKey("customProperties")) { $task.customProperties = @(GetCustomProperties $customProperties $task.customProperties) }
+        if ($PSBoundParameters.ContainsKey("tags")) { $task.tags = @(GetTags $tags $task.tags) }
 
         $json = $task | ConvertTo-Json -Compress -Depth 10
         return Invoke-QlikPut -path "/qrs/reloadtask/$id" -body $json

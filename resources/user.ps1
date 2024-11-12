@@ -81,18 +81,18 @@ function Update-QlikUser {
         [parameter(Mandatory = $true, ValueFromPipeline = $True, ValueFromPipelinebyPropertyName = $True, Position = 0)]
         [string]$id,
 
-        [string[]]$customProperties,
-        [string[]]$tags,
+        [object[]]$customProperties,
+        [object[]]$tags,
         [string]$name,
         [string[]]$roles
     )
 
     PROCESS {
         $user = Get-QlikUser $id -raw
-        If ( $roles ) { $user.roles = $roles }
-        If ( $name ) { $user.name = $name }
-        if ($PSBoundParameters.ContainsKey("customProperties")) { $user.customProperties = @(GetCustomProperties $customProperties) }
-        if ($PSBoundParameters.ContainsKey("tags")) { $user.tags = @(GetTags $tags) }
+        If ($PSBoundParameters.ContainsKey("roles")) { $user.roles = $roles }
+        If ($PSBoundParameters.ContainsKey("tags")) { $user.name = $name }
+        if ($PSBoundParameters.ContainsKey("customProperties")) { $user.customProperties = @(GetCustomProperties $customProperties $user.customProperties) }
+        if ($PSBoundParameters.ContainsKey("tags")) { $user.tags = @(GetTags $tags $user.tags) }
 
         $json = $user | ConvertTo-Json -Compress -Depth 10
         return Invoke-QlikPut "/qrs/user/$id" $json

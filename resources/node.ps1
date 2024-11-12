@@ -53,6 +53,8 @@ function New-QlikNode {
                 hostName = $hostname;
             }
         }
+        if ($PSBoundParameters.ContainsKey("customProperties")) { $node.customProperties = @(GetCustomProperties $customProperties $node.customProperties) }
+        if ($PSBoundParameters.ContainsKey("tags")) { $node.tags = @(GetTags $tags $node.tags) }
         If ( $psBoundParameters.ContainsKey("failoverCandidate") ) {
             $conf.configuration.failoverCandidate = $failoverCandidate.IsPresent
             if ($failoverCandidate.IsPresent) {
@@ -140,8 +142,8 @@ function Update-QlikNode {
         [string]$name,
         [ValidateSet("Production", "Development", "Both", "ProductionAndDevelopment")]
         [string]$nodePurpose,
-        [string[]]$customProperties,
-        [string[]]$tags,
+        [object[]]$customProperties,
+        [object[]]$tags,
         [switch]$engineEnabled,
         [switch]$proxyEnabled,
         [switch]$schedulerEnabled,
@@ -160,8 +162,8 @@ function Update-QlikNode {
                 Both { $node.nodePurpose = 2 }
             }
         }
-        if ($PSBoundParameters.ContainsKey("customProperties")) { $node.customProperties = @(GetCustomProperties $customProperties) }
-        if ($PSBoundParameters.ContainsKey("tags")) { $node.tags = @(GetTags $tags) }
+        if ($PSBoundParameters.ContainsKey("customProperties")) { $node.customProperties = @(GetCustomProperties $customProperties $node.customProperties) }
+        if ($PSBoundParameters.ContainsKey("tags")) { $node.tags = @(GetTags $tags $node.tags) }
         If ( $psBoundParameters.ContainsKey("failoverCandidate") ) {
             $node.failoverCandidate = $failoverCandidate.IsPresent
             if ($failoverCandidate.IsPresent) {

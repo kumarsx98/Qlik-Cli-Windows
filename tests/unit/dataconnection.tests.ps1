@@ -24,6 +24,7 @@ Describe "New-QlikDataConnection" {
         Mock Get-QlikCustomProperty {
             return @(@{
                     id = 'daa5005e-5f3b-45c5-b2fd-1a1c92c5f367'
+                    choiceValues = @('development')
                 })
         }
 
@@ -119,6 +120,36 @@ Describe "Update-QlikDataConnection" {
                 }]
             }
 "@ | ConvertFrom-Json
+    }
+
+    Context 'Credential' {
+        It 'should be removed when a null value is provided' {
+            $dc = Update-QlikDataConnection `
+                -id '158e743b-c59f-490e-900c-b57e66cf8185' `
+                -Credential $null
+
+            $dc.PSObject.Properties.Name | Should -Contain username
+            $dc.PSObject.Properties.Name | Should -Contain password
+            $dc.username | Should -BeNullOrEmpty
+            $dc.password | Should -BeNullOrEmpty
+
+            Assert-VerifiableMock
+        }
+
+        It 'should be removed when an empty credential is provided' {
+            $password = New-Object System.Security.SecureString
+            $credential = [System.Management.Automation.PSCredential]::Empty
+            $dc = Update-QlikDataConnection `
+                -id '158e743b-c59f-490e-900c-b57e66cf8185' `
+                -Credential $credential
+
+            $dc.PSObject.Properties.Name | Should -Contain username
+            $dc.PSObject.Properties.Name | Should -Contain password
+            $dc.username | Should -BeNullOrEmpty
+            $dc.password | Should -BeNullOrEmpty
+
+            Assert-VerifiableMock
+        }
     }
 
     Context 'Password' {
